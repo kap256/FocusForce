@@ -1,5 +1,4 @@
-﻿using FFDll;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -10,6 +9,11 @@ namespace FocusForce
 {
     static class Program
     {
+        [DllImport("FFDllpp.dll")]
+        static extern bool StartHook();
+
+        [DllImport("FFDllpp.dll")]
+        static extern bool EndHook();
 
         /// <summary>
         /// アプリケーションのメイン エントリ ポイントです。
@@ -18,14 +22,14 @@ namespace FocusForce
         static void Main()
         {
             try {
-                Hook.HookStart();
+                StartHook();
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new Form1());
             } catch (Exception e) {
                 MessageBox.Show(e.Message);
             } finally {
-                Hook.HookStop();
+                EndHook();
 
             }
         }
