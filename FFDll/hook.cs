@@ -23,8 +23,26 @@ namespace FFDll
         /// <param name="wParam">未使用</param>
         /// <param name="lParam">MSG構造体へのポインタ</param>
         /// </summary>
-        const Int32 WH_MSGFILTER = -1;
+        const Int32 WH_MSGFILTER = -1;        /// <summary>
 
+        /// メッセージフィルタのフックID
+        /// <param name="wParam">スレッド判断用の値</param>
+        /// <param name="lParam">CWPSTRUCT構造体へのポインタ</param>
+        /// </summary>
+        const Int32 WH_CALLWNDPROC = 4;
+
+
+        /// <summary>
+        /// CWPSTRUCT構造体　https://docs.microsoft.com/ja-jp/windows/win32/api/winuser/ns-winuser-cwpstruct
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public struct CWPSTRUCT
+        {
+            public UInt32 lParam;
+            public UInt32 wParam;
+            public UInt32 message;
+            public IntPtr hwnd;
+        }
 
         /// <summary>
         /// MSG構造体　https://docs.microsoft.com/ja-jp/windows/win32/api/winuser/ns-winuser-msg
@@ -54,7 +72,7 @@ namespace FFDll
         /// <summary>
         /// フックプロシージャのデリゲート
         /// </summary>
-        public delegate IntPtr HookCallback(Int32 nCode, UInt32 wParam, ref MSG lParam);
+        public delegate IntPtr HookCallback(Int32 nCode, UInt32 wParam, ref CWPSTRUCT lParam);
 
 
         /// <summary>
@@ -70,7 +88,7 @@ namespace FFDll
         /// フックプロシージャは、フック情報を処理する前でも、フック情報を処理した後でも、この関数を呼び出せます。
         /// </summary>
         [DllImport("user32.dll", SetLastError = true)]
-        public static extern IntPtr CallNextHookEx(IntPtr hhk, Int32 hwnd, UInt32 wParam, ref MSG lParam);
+        public static extern IntPtr CallNextHookEx(IntPtr hhk, Int32 hwnd, UInt32 wParam, ref CWPSTRUCT lParam);
 
         /// <summary>
         /// SetWindowsHookEx 関数を使ってフックチェーン内にインストールされたフックプロシージャを削除します。
@@ -110,7 +128,7 @@ namespace FFDll
 
             IntPtr h = Marshal.GetHINSTANCE(typeof(Hook).Assembly.GetModules()[0]);
             IntPtr mar = LoadLibrary("user32.dll");
-            HHook = SetWindowsHookEx(WH_MSGFILTER, OnHook,mar, 0);
+            HHook = SetWindowsHookEx(WH_CALLWNDPROC, OnHook,mar, 0);
 
             if (HHook == IntPtr.Zero) {
 
@@ -140,12 +158,13 @@ namespace FFDll
         /// <summary>
         /// フックプロシージャ本体
         /// </summary>
-        protected static IntPtr OnHook(int nCode, uint wParam, ref MSG lParam)
+        protected static IntPtr OnHook(int nCode, uint wParam, ref CWPSTRUCT lParam)
         {
-            Debug.Print($"message = {lParam.message }");
+            /*
             if (lParam.message == WM_KILLFOCUS) {
                 return IntPtr.Zero;
             }
+            */
 
             return CallNextHookEx(HHook, nCode, wParam, ref lParam);
         }
