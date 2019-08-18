@@ -20,7 +20,10 @@ void* RewriteFunctionImp(const char* szRewriteModuleName, const char* szRewriteF
 		} else if (i == 1) {
 			dwBase = (DWORD)(intptr_t)GetModuleHandle(NULL);
 		}
-		if (!dwBase)continue;
+		if (!dwBase) {
+			Print(_T("GetModuleHandle failed."));
+			continue;
+		}
 
 		// イメージ列挙
 		ULONG ulSize;
@@ -34,6 +37,11 @@ void* RewriteFunctionImp(const char* szRewriteModuleName, const char* szRewriteF
 			for (; pFirstThunk->u1.Function; pFirstThunk++, pOrgFirstThunk++) {
 				if (IMAGE_SNAP_BY_ORDINAL(pOrgFirstThunk->u1.Ordinal))continue;
 				PIMAGE_IMPORT_BY_NAME pImportName = (PIMAGE_IMPORT_BY_NAME)(intptr_t)(dwBase + (DWORD)pOrgFirstThunk->u1.AddressOfData);
+				
+
+				_sntprintf_s(buf, buf_size, _T("Module:%hs Hint : %d, Name : %hs"), szModuleName, pImportName->Hint, pImportName->Name);
+				Print(buf);
+				
 				if (!szRewriteFunctionName) {
 					// 表示のみ
 					_sntprintf_s(buf, buf_size, _T("Module:%hs Hint : %d, Name : %hs"), szModuleName, pImportName->Hint, pImportName->Name);
