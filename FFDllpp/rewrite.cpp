@@ -37,11 +37,7 @@ void* RewriteFunctionImp(const char* szRewriteModuleName, const char* szRewriteF
 			for (; pFirstThunk->u1.Function; pFirstThunk++, pOrgFirstThunk++) {
 				if (IMAGE_SNAP_BY_ORDINAL(pOrgFirstThunk->u1.Ordinal))continue;
 				PIMAGE_IMPORT_BY_NAME pImportName = (PIMAGE_IMPORT_BY_NAME)(intptr_t)(dwBase + (DWORD)pOrgFirstThunk->u1.AddressOfData);
-				
 
-				_sntprintf_s(buf, buf_size, _T("Module:%hs Hint : %d, Name : %hs"), szModuleName, pImportName->Hint, pImportName->Name);
-				Print(buf);
-				
 				if (!szRewriteFunctionName) {
 					// 表示のみ
 					_sntprintf_s(buf, buf_size, _T("Module:%hs Hint : %d, Name : %hs"), szModuleName, pImportName->Hint, pImportName->Name);
@@ -52,10 +48,12 @@ void* RewriteFunctionImp(const char* szRewriteModuleName, const char* szRewriteF
 
 					// 保護状態変更
 					DWORD dwOldProtect;
-					if (!VirtualProtect(&pFirstThunk->u1.Function, sizeof(pFirstThunk->u1.Function), PAGE_READWRITE, &dwOldProtect))
+					if (!VirtualProtect(&pFirstThunk->u1.Function, sizeof(pFirstThunk->u1.Function), PAGE_READWRITE, &dwOldProtect)) {
+						Print(_T("VirtualProtect failed."));
 						return NULL; // エラー
+					}
 
-									 // 書き換え
+					// 書き換え
 					void* pOrgFunc = (void*)(intptr_t)pFirstThunk->u1.Function; // 元のアドレスを保存しておく
 					WriteProcessMemory(GetCurrentProcess(), &pFirstThunk->u1.Function, &pRewriteFunctionPointer, sizeof(pFirstThunk->u1.Function), NULL);
 					pFirstThunk->u1.Function = (DWORD)(intptr_t)pRewriteFunctionPointer;
@@ -67,6 +65,10 @@ void* RewriteFunctionImp(const char* szRewriteModuleName, const char* szRewriteF
 			}
 		}
 	}
+
+	if (szRewriteFunctionName) {
+		Print(_T("Function not found."));
+	}
 	return NULL;
 }
 
@@ -75,9 +77,9 @@ void* RewriteFunction(const char* szRewriteModuleName, const char* szRewriteFunc
 	return RewriteFunctionImp(szRewriteModuleName, szRewriteFunctionName, pRewriteFunctionPointer);
 }
 
-void PrintFunctions()
+void PrintFunctions(const char* szRewriteModuleName)
 {
 	Print(_T("----"));
-	RewriteFunctionImp(NULL, NULL, NULL);
+	RewriteFunctionImp(szRewriteModuleName, NULL, NULL);
 	Print(_T("----"));
 }
