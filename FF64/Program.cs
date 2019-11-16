@@ -1,31 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace FocusForce
+namespace FF64
 {
     static class Program
     {
-        [DllImport("FFDllpp.dll")]
+        [DllImport("FFDllpp64.dll")]
         static extern bool StartHook();
 
-        [DllImport("FFDllpp.dll")]
+        [DllImport("FFDllpp64.dll")]
         static extern bool EndHook();
-
-        const string mutexName = "FF32_756e7162-a066-4e77-91c7";
-
+        
+        const string mutexName = "FF64_3427bbd9-ae60-4f2b-b0d4";
+  
         /// <summary>
         /// アプリケーションのメイン エントリ ポイントです。
         /// </summary>
         [STAThread]
         static void Main()
         {
-            Process proc64 = null;
             Mutex mutex = new System.Threading.Mutex(false, mutexName);
             bool hasHandle = false;
             try {
@@ -42,36 +40,20 @@ namespace FocusForce
 
                 //フック開始
                 StartHook();
-
-                //64bitプロセスの起動
-                try {
-                    proc64 = Process.Start("FF64.exe");
-                } catch {
-                    //まあいいや。
-                }
-
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new Form1());
+                Application.Run();
             } catch (Exception e) {
                 MessageBox.Show(e.Message);
             } finally {
-                try {
-                    if (proc64 != null) {
-                        proc64.Kill();
-                    }
-                } catch {
-                    //まあいいや。
-                }
-
                 EndHook();
 
                 if (hasHandle) {
                     mutex.ReleaseMutex();
                 }
                 mutex.Close();
-
             }
+
         }
     }
 }

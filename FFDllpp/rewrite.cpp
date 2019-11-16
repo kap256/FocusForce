@@ -8,17 +8,24 @@
 #include "stdafx.h"
 #pragma comment(lib,"Dbghelp.lib")
 
+
+#ifdef _M_AMD64
+typedef long long POINTER;
+#else
+typedef DWORD POINTER;
+#endif
+
 void* RewriteFunctionImp(const char* szRewriteModuleName, const char* szRewriteFunctionName, void* pRewriteFunctionPointer)
 {
 	for (int i = 0; i < 2; i++) {
 		// ベースアドレス
-		DWORD dwBase = 0;
+		POINTER dwBase = 0;
 		if (i == 0) {
 			if (szRewriteModuleName) {
-				dwBase = (DWORD)(intptr_t)::GetModuleHandleA(szRewriteModuleName);
+				dwBase = (POINTER)(intptr_t)::GetModuleHandleA(szRewriteModuleName);
 			}
 		} else if (i == 1) {
-			dwBase = (DWORD)(intptr_t)GetModuleHandle(NULL);
+			dwBase = (POINTER)(intptr_t)GetModuleHandle(NULL);
 		}
 		if (!dwBase) {
 			Print(_T("GetModuleHandle failed."));
@@ -36,11 +43,11 @@ void* RewriteFunctionImp(const char* szRewriteModuleName, const char* szRewriteF
 			// 関数列挙
 			for (; pFirstThunk->u1.Function; pFirstThunk++, pOrgFirstThunk++) {
 				if (IMAGE_SNAP_BY_ORDINAL(pOrgFirstThunk->u1.Ordinal))continue;
-				PIMAGE_IMPORT_BY_NAME pImportName = (PIMAGE_IMPORT_BY_NAME)(intptr_t)(dwBase + (DWORD)pOrgFirstThunk->u1.AddressOfData);
+				PIMAGE_IMPORT_BY_NAME pImportName = (PIMAGE_IMPORT_BY_NAME)(intptr_t)(dwBase + (POINTER)pOrgFirstThunk->u1.AddressOfData);
 
 				if (!szRewriteFunctionName) {
 					// 表示のみ
-					_sntprintf_s(buf, buf_size, _T("Module:%hs Hint : %d, Name : %hs"), szModuleName, pImportName->Hint, pImportName->Name);
+					_sntprintf_s(buf, buf_size, _T("Module:%hs Hint : %d, Name : %hs"), szModuleName,pImportName->Hint, pImportName->Name);
 					Print(buf);
 				} else {
 					// 書き換え判定
@@ -56,7 +63,7 @@ void* RewriteFunctionImp(const char* szRewriteModuleName, const char* szRewriteF
 					// 書き換え
 					void* pOrgFunc = (void*)(intptr_t)pFirstThunk->u1.Function; // 元のアドレスを保存しておく
 					WriteProcessMemory(GetCurrentProcess(), &pFirstThunk->u1.Function, &pRewriteFunctionPointer, sizeof(pFirstThunk->u1.Function), NULL);
-					pFirstThunk->u1.Function = (DWORD)(intptr_t)pRewriteFunctionPointer;
+					pFirstThunk->u1.Function = (POINTER)(intptr_t)pRewriteFunctionPointer;
 
 					// 保護状態戻し
 					VirtualProtect(&pFirstThunk->u1.Function, sizeof(pFirstThunk->u1.Function), dwOldProtect, &dwOldProtect);
@@ -74,7 +81,13 @@ void* RewriteFunctionImp(const char* szRewriteModuleName, const char* szRewriteF
 
 void* RewriteFunction(const char* szRewriteModuleName, const char* szRewriteFunctionName, void* pRewriteFunctionPointer)
 {
+#ifdef _M_AMD64
+	//多分大丈夫にしたと思うけど、ダメだったら64bitでは動かないようにしといてくれ。
 	return RewriteFunctionImp(szRewriteModuleName, szRewriteFunctionName, pRewriteFunctionPointer);
+	return nullptr;
+#else
+	return RewriteFunctionImp(szRewriteModuleName, szRewriteFunctionName, pRewriteFunctionPointer);
+#endif
 }
 
 void PrintFunctions(const char* szRewriteModuleName)
