@@ -10,6 +10,7 @@ void Print(const TCHAR* message);
 void CheckIsTargetProc();
 
 void CancelINACTIVE(LPCWPSTRUCT cwp);
+void CancelACTIVATEAPP(LPCWPSTRUCT cwp);
 void FixWindowPos(LPCWPSTRUCT cwp);
 
 void OnAttach();
