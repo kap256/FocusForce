@@ -81,6 +81,9 @@ void* RewriteFunctionImp(const char* szRewriteModuleName, const char* szRewriteF
 
 void* RewriteFunction(const char* szRewriteModuleName, const char* szRewriteFunctionName, void* pRewriteFunctionPointer)
 {
+	if (!pRewriteFunctionPointer) {
+		return nullptr;
+	}
 #ifdef _M_AMD64
 	//多分大丈夫にしたと思うけど、ダメだったら64bitでは動かないようにしといてくれ。
 	return RewriteFunctionImp(szRewriteModuleName, szRewriteFunctionName, pRewriteFunctionPointer);
