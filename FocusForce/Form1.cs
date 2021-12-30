@@ -91,7 +91,12 @@ namespace FocusForce
             var file = GetFileName();
             using (var writer = new StreamWriter(file,false, ENCODE)) {
                 foreach (var target in listBox_target.Items) {
-                    writer.WriteLine(target.ToString());
+                    var item = target as TargetItem;
+                    if (item != null) {
+                        writer.WriteLine(item.ToFile());
+                    } else {
+                        writer.WriteLine(target.ToString());
+                    }
                 }
             }
         }
@@ -106,7 +111,8 @@ namespace FocusForce
                         if (line == null) {
                             break;
                         }
-                        listBox_target.Items.Add(line);
+                        TargetItem item = new TargetItem(line);
+                        listBox_target.Items.Add(item);
                     }
                 }
             }
@@ -137,7 +143,10 @@ namespace FocusForce
         }
         private void button_Add_Click(object sender, EventArgs e)
         {
-            listBox_target.Items.Add(textBox_Add.Text);
+            var item = new TargetItem(textBox_Add.Text);
+            item.FixWinPos = !checkBox_FixPos.Checked;
+            item.CancelInactive = checkBox_FF.Checked;
+            listBox_target.Items.Add(item);
             textBox_Add.Text = "";
         }
         private void listBox_target_SelectedIndexChanged(object sender, EventArgs e)
@@ -146,11 +155,50 @@ namespace FocusForce
         }
         private void button_Delete_Click(object sender, EventArgs e)
         {
-            var target_file = listBox_target.SelectedItem.ToString();
-            textBox_Add.Text = target_file;
+            var item = listBox_target.SelectedItem as TargetItem;
+            if (item != null) {
+                textBox_Add.Text = item.Path;
+                checkBox_FixPos.Checked = !item.FixWinPos;
+                checkBox_FF.Checked = item.CancelInactive;
+            } else {
+                textBox_Add.Text = listBox_target.SelectedItem.ToString();
+            }
             listBox_target.Items.RemoveAt(listBox_target.SelectedIndex);
         }
         #endregion
-        
+
+        #region リスト要素-----------------------------------------
+        class TargetItem
+        {
+            public string Path;
+            public bool FixWinPos = true;
+            public bool CancelInactive = true;
+            public TargetItem(string line)
+            {
+                var split = line.Split('|');
+                if (split.Length >= 2) {
+                    var Param = split[1].ToCharArray();
+                    FixWinPos = (Param[0] == '0');
+                    CancelInactive = (Param[1] != '0');
+                }
+                Path = split[0];
+            }
+
+            public override string ToString()
+            {
+                return $"[{ParamStr}] {Path}";
+            }
+            public string ToFile()
+            {
+                return $"{Path}|{ParamStr}";
+            }
+            public string ParamStr {
+                get {
+                    return $"{(FixWinPos ? '0' : '1')}{(CancelInactive ? '1' : '0')}";
+                }
+            }
+              
+        }
+        #endregion
     }
 }
