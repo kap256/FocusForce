@@ -21,16 +21,22 @@ public:
 		if (!param) {
 			FullPower();
 		} else {
-			mFixWinPos = (param[0] != _T('0'));
+			mFixWinPos = (param[0] == _T('0'));
 			mCancelInactive = (param[1] != _T('0'));
 		}
+
+		DSPrintf(buf, buf_size, 
+			_T("mFixWinPos:%s   mCancelInactive:%s"),
+			(mFixWinPos ? "true" : "false"),
+			(mCancelInactive ? "true" : "false"));
+		Log(buf);
 	}
 	void ToString(TCHAR* param)
 	{
 		if (!param) {
 			return;
 		}
-		param[0] = (mFixWinPos ? _T('1') : _T('0'));
+		param[0] = (mFixWinPos ? _T('0') : _T('1'));
 		param[1] = (mCancelInactive ? _T('1') : _T('0'));
 		param[2] = _T('\0');
 	}

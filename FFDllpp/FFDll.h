@@ -22,3 +22,16 @@ void PrintFunctions(const char* szRewriteModuleName);
 const int buf_size = 1024;
 extern TCHAR buf[buf_size];
 extern HMODULE gModule;
+
+//////////////////////////////////////////////////////////
+//  デバッグ出力関連
+
+#ifdef _DEBUG
+
+#define DSPrintf _sntprintf_s
+
+#else
+
+void DSPrintf(TCHAR* arg, ...);
+
+#endif

@@ -68,6 +68,7 @@ namespace FocusForce
 
         private void ShowForm()
         {
+            this.Show();
             this.ShowInTaskbar = true;
             this.WindowState = FormWindowState.Normal;
         }
@@ -76,6 +77,7 @@ namespace FocusForce
         {
             this.ShowInTaskbar = false;
             this.WindowState = FormWindowState.Minimized;
+            this.Hide();
         }
         #endregion
 
