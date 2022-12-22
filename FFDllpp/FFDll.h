@@ -7,7 +7,7 @@ EXPORT bool EndHook(void);
 void Log(const TCHAR* message);
 void Print(const TCHAR* message);
 
-void CheckIsTargetProc();
+bool CheckIsTargetProc();
 
 void CancelINACTIVE(LPCWPSTRUCT cwp);
 void CancelACTIVATEAPP(LPCWPSTRUCT cwp);

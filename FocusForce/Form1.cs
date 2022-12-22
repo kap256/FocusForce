@@ -63,6 +63,7 @@ namespace FocusForce
         private void button_ok_Click(object sender, EventArgs e)
         {
             SaveTargetList();
+            LoadTargetList();
             HideForm();
         }
 
@@ -91,20 +92,31 @@ namespace FocusForce
         private void SaveTargetList()
         {
             var file = GetFileName();
+            var not_ascii = new List<TargetItem>();
             using (var writer = new StreamWriter(file,false, ENCODE)) {
                 foreach (var target in listBox_target.Items) {
                     var item = target as TargetItem;
                     if (item != null) {
-                        writer.WriteLine(item.ToFile());
+                        if (item.IsASCII()) {
+                            writer.WriteLine(item.ToFile());
+                        } else {
+                            not_ascii.Add(item);
+                        }
                     } else {
                         writer.WriteLine(target.ToString());
                     }
+                }
+                //DLLのほうを上手く修正出来なかったので、運用で回避。
+                //ASCII以外の文字を含むターゲットは、末尾に保存する。
+                foreach (var item in not_ascii) {
+                    writer.WriteLine(item.ToFile());
                 }
             }
         }
 
         private void LoadTargetList()
         {
+            listBox_target.Items.Clear();
             var file = GetFileName();
             if (File.Exists(file)) {
                 using (var reader = new StreamReader(file, ENCODE)) {
@@ -198,6 +210,15 @@ namespace FocusForce
                 get {
                     return $"{(FixWinPos ? '0' : '1')}{(CancelInactive ? '1' : '0')}";
                 }
+            }
+            public bool IsASCII()
+            {
+                foreach (var c in Path.ToCharArray()) {
+                    if (c >= 128) {
+                        return false;
+                    }
+                }
+                return true;
             }
               
         }

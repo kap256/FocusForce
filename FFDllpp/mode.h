@@ -27,8 +27,8 @@ public:
 
 		DSPrintf(buf, buf_size, 
 			_T("mFixWinPos:%s   mCancelInactive:%s"),
-			(mFixWinPos ? "true" : "false"),
-			(mCancelInactive ? "true" : "false"));
+			(mFixWinPos ? _T("true") : _T("false")),
+			(mCancelInactive ? _T("true") : _T("false")));
 		Log(buf);
 	}
 	void ToString(TCHAR* param)
